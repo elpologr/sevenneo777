@@ -2365,6 +2365,15 @@
                 const [, y, mo, d] = m;
                 return new Date(+y, +mo - 1, +d);
             }
+            // Formato en español: "12 junio 2020" / "12 de junio de 2020"
+            const meses = { enero:0, febrero:1, marzo:2, abril:3, mayo:4, junio:5, julio:6, agosto:7,
+                             septiembre:8, setiembre:8, octubre:9, noviembre:10, diciembre:11 };
+            m = t.toLowerCase().match(/^(\d{1,2})\s*(?:de\s*)?([a-záéíóúñ]+)\s*(?:de\s*)?(\d{4})$/);
+            if (m) {
+                const [, d, mesTxt, y] = m;
+                const mesNum = meses[mesTxt];
+                if (mesNum !== undefined) return new Date(+y, mesNum, +d);
+            }
             const fallback = new Date(t);
             return isNaN(fallback) ? new Date(0) : fallback;
         }
@@ -2403,6 +2412,18 @@
             return div.innerHTML;
         }
 
+        // Si la hoja no trae Título, se intenta traer el título real del video de YouTube
+        async function obtenerTituloYoutube(youtubeId) {
+            try {
+                const resp = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${youtubeId}&format=json`);
+                if (!resp.ok) return null;
+                const data = await resp.json();
+                return data.title || null;
+            } catch (e) {
+                return null;
+            }
+        }
+
         async function cargarVideosDesdeSheet() {
             const msgVacio = document.getElementById('mensaje-vacio');
             try {
@@ -2410,7 +2431,11 @@
                 if (!resp.ok) throw new Error('No se pudo leer la hoja');
                 const texto = await resp.text();
                 const filas = parsearCSVVideos(texto);
-                const datos = filas.slice(1).filter(f => (f[0] || '').trim() !== '');
+                // Una fila es válida si tiene al menos un link (YouTube, Facebook o Instagram),
+                // el Título es opcional — si falta, se intenta autocompletar más abajo.
+                const datos = filas.slice(1).filter(f =>
+                    (f[3] || '').trim() !== '' || (f[4] || '').trim() !== '' || (f[5] || '').trim() !== ''
+                );
 
                 const videos = datos.map(f => ({
                     titulo:      (f[0] || '').trim(),
@@ -2420,6 +2445,21 @@
                     youtube:     (f[3] || '').trim(),
                     facebook:    (f[4] || '').trim(),
                     instagram:   (f[5] || '').trim()
+                }));
+
+                // Autocompletar el título de los videos que no traen uno en la hoja
+                await Promise.all(videos.map(async (v) => {
+                    if (v.titulo) return;
+                    const media = detectarMediaVideo(v.youtube, v.facebook, v.instagram);
+                    if (media && media.tipo === 'youtube' && media.youtubeId) {
+                        v.titulo = (await obtenerTituloYoutube(media.youtubeId)) || 'Video de Seven Neo 777';
+                    } else if (media && media.tipo === 'facebook') {
+                        v.titulo = 'Video de Facebook';
+                    } else if (media && media.tipo === 'instagram') {
+                        v.titulo = 'Video de Instagram';
+                    } else {
+                        v.titulo = 'Video sin título';
+                    }
                 }));
 
                 // Más reciente primero
@@ -2442,7 +2482,7 @@
 
             grilla.querySelectorAll('.producto-card').forEach(c => c.remove());
 
-            const validos = videos.filter(v => v.titulo && detectarMediaVideo(v.youtube, v.facebook, v.instagram));
+            const validos = videos.filter(v => detectarMediaVideo(v.youtube, v.facebook, v.instagram));
 
             if (!validos.length) {
                 if (msgVacio) { msgVacio.textContent = 'No hay videos disponibles por el momento.'; msgVacio.style.display = 'block'; }
