@@ -1765,16 +1765,17 @@
             <!-- Layout grid: recuadro izq | texto der -->
             <!-- Texto biográfico -->
             <div style="padding: 0 20px;">
-                <h2 class="bio-titulo">Seven Neo 777: La Voz y las Cuerdas del Orgullo Moreliano</h2>
+                <h2 class="bio-titulo">Seven Neo777: La Evolución del Movimiento</h2>
                 <p class="bio-parrafo">
-                    Originario de Morelia, Michoacán, Seven Neo 777 se ha consolidado como uno de los músicos independientes más completos y versátiles de la escena actual en México. Su perfil abarca las facetas de cantautor, productor musical, guitarrista y corista, demostrando una madurez artística que fusiona con maestría géneros como el Pop, Funk, Rock y R&B.
+                    Desde el corazón de la Ciudad de México, Seven Neo777 ha emergido como una voz única en la escena del baile urbano. Con una trayectoria iniciada en 2020, se ha especializado en la fusión técnica del Popping, la precisión del Animation y la fluidez eléctrica del Dubstep, creando un lenguaje corporal que desafía la percepción del espectador.
                 </p>
                 <p class="bio-parrafo">
-                    Su innegable talento e impecable disciplina técnica lo llevaron en el año 2016 a integrarse formalmente a la prestigiosa orquesta de la leyenda internacional Marco Antonio Solís "El Buki". Desde entonces, Seven Neo 777 ha recorrido los escenarios más emblemáticos del mundo entero —debutando de manera memorable en el histórico Festival Internacional de la Canción de Viña del Mar—, desempeñándose como guitarrista y corista principal de la agrupación, además de fungir con orgullo como el telonero oficial en múltiples de las giras masivas de la estrella michoacana.
+                    Su estilo no es solo baile; es una exploración de la robótica orgánica y el control muscular absoluto. Inspirado por la vibrante energía de la CDMX, Seven Neo777 ha perfeccionado una estética que parece manipular el tiempo y el espacio en cada latido de la música. Lo que comenzó en 2020 como una búsqueda personal de expresión, se ha transformado en un dominio técnico donde cada "pop" y cada "hit" están perfectamente sincronizados con la complejidad de los bajos del Dubstep.
                 </p>
                 <p class="bio-parrafo">
-                    Paralelamente a su destacada trayectoria internacional en estadios, Seven Neo 777 impulsa con firmeza su propuesta solista. Con una discografía independiente que incluye su álbum homónimo de estudio y potentes sencillos distribuidos globalmente, continúa conquistando las plataformas digitales de la mano de un sonido moderno, fresco y con una identidad lírica inconfundible que pone en alto el nombre de su natal Michoacán.
+                    Más que un ejecutor, Seven Neo777 es un narrador visual que transforma la música electrónica en imágenes táctiles. Su compromiso con la disciplina y su constante búsqueda de nuevas texturas de movimiento lo posicionan como un referente emergente que busca llevar el estilo Animation a nuevos niveles de vanguardia.
                 </p>
+                <p class="bio-parrafo" style="margin-top:20px; font-size:13px; color:#888; font-style:italic;">Estilo: Popping, Animation, Dubstep. Base: Ciudad de México. Activo desde: 2020.</p>
             </div>
 
             <!-- Videos — ancho completo del contenedor, con padding -->
@@ -1875,21 +1876,6 @@
         <!-- ====== SECCIÓN PROYECTOS ====== -->
         <div id="seccion-proyectos" style="display:none; margin-bottom:40px;">
             <div class="grilla-productos" style="grid-template-columns: repeat(2,1fr); gap:16px;">
-
-                <!-- La Voz de Michoacán -->
-                <div class="producto-card" id="prod-voz-michoacan"
-                     data-nombre="La Voz de Michoacán · Entrevista"
-                     data-link-externo="https://www.lavozdemichoacan.com.mx/entretenimiento/musica/de-morelia-a-los-escenarios-de-el-buki-victor-moran-estrena-nuevo-sencillo/?fbclid=IwY2xjawSC--tleHRuA2FlbQIxMABicmlkETFWd09Edk85dWEzdThTY08wc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHnNPx7zKrFysy3c7KGyd6CAL03CDP81Fp1j0Nx8HsgTHajmJjWcb9btsrBdN_aem_TJ9EbwxQk-SXuwKcKbJBYA"
-                     data-descripcion="Seven Neo 777 es destacado en un artículo de La Voz de Michoacán, uno de los medios más importantes del estado, en el que se habla de su trayectoria musical y su camino junto a El Buki. Una confirmación de que el trabajo constante y la dedicación eventualmente llegan a los oídos correctos."
-                     data-imagenes="imagenes/victor-prensa1.webp"
-                     onclick="abrirFichaProducto(this)">
-                    <img class="producto-img" src="imagenes/victor-prensa1.webp" alt="La Voz de Michoacán" onerror="this.style.background='#1a0a00'">
-                    <div class="producto-info">
-                        <h3 class="producto-titulo">La Voz de Michoacán</h3>
-                        <p class="producto-detalles">Prensa · Entrevista</p>
-                    </div>
-                    <div class="producto-card-hint">Toca para ver detalles</div>
-                </div>
 
             </div>
         </div><!-- /seccion-proyectos -->
@@ -2271,12 +2257,14 @@
                 descEl.textContent = desc;
                 descEl.style.display = desc ? 'block' : 'none';
             }
-            // Si la tarjeta es un video de Sheets con embed de Facebook o Instagram, mostrarlo
-            if (card.dataset.mediaTipo === 'facebook' || card.dataset.mediaTipo === 'instagram') {
+            // Si la tarjeta es un video de Sheets (YouTube, Facebook o Instagram), mostrarlo
+            if (card.dataset.mediaTipo === 'youtube' || card.dataset.mediaTipo === 'facebook' || card.dataset.mediaTipo === 'instagram') {
                 const track = document.getElementById('mpTrack');
                 const puntitos = document.getElementById('mpPuntitos');
                 const embed = card.dataset.mediaEmbed || '';
-                if (card.dataset.mediaTipo === 'facebook') {
+                if (card.dataset.mediaTipo === 'youtube') {
+                    track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:280px;border:none;border-radius:12px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                } else if (card.dataset.mediaTipo === 'facebook') {
                     track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:280px;border:none;border-radius:12px;overflow:hidden;" scrolling="no" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
                 } else {
                     track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:480px;border:none;border-radius:12px;" allowtransparency="true" allowfullscreen="true"></iframe>`;
