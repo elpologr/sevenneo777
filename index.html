@@ -70,21 +70,34 @@
         .perfil-avatar-contenedor {
             display: flex;
             justify-content: center;
-            margin: -38px 0 14px 0;
-            position: relative;
-            z-index: 5;
+            align-items: center;
+            padding: 32px 16px 24px;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+        .perfil-avatar-marco {
+            width: 220px;
+            height: 220px;
+            max-width: 60vw;
+            max-height: 60vw;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            border: 3px solid #e8e8e8;
+            flex-shrink: 0;
         }
         .perfil-avatar-img {
-            width: 96px;
-            height: 96px;
-            border-radius: 50%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border: 4px solid #fff;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-            background: #ddd;
+            display: block;
         }
-        body.modo-oscuro .perfil-avatar-img {
-            border-color: #121212;
+        body.modo-oscuro .perfil-avatar-contenedor {
+            background: #121212;
+            border-bottom-color: #2a2a2a;
+        }
+        body.modo-oscuro .perfil-avatar-marco {
+            border-color: #333;
         }
 
         .contenedor {
@@ -1836,7 +1849,9 @@
 
     <!-- Foto de perfil circular, justo debajo de la barra de redes sociales -->
     <div class="perfil-avatar-contenedor">
-        <img src="imagenes/perfil.webp" alt="Foto de perfil de Seven Neo 777" class="perfil-avatar-img" onerror="this.parentElement.style.display='none'">
+        <div class="perfil-avatar-marco">
+            <img src="imagenes/perfil.webp" alt="Foto de perfil de Seven Neo 777" class="perfil-avatar-img" onerror="this.closest('.perfil-avatar-contenedor').style.display='none'">
+        </div>
     </div>
 
     <div class="contenedor">
