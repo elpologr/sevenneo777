@@ -2479,6 +2479,31 @@
             return u.endsWith('/embed/') ? u : u + 'embed';
         }
 
+        // Miniatura real de la publicación de Instagram, usando el endpoint público
+        // de imagen que existe para cualquier post/reel (sin necesitar API ni token).
+        function construirMiniaturaInstagram(url) {
+            let u = url.trim();
+            if (!u) return null;
+            u = u.split('?')[0];
+            if (!u.endsWith('/')) u += '/';
+            return u + 'media/?size=l';
+        }
+
+        // Si la miniatura de Instagram no carga (bloqueo, post privado, etc.),
+        // se sustituye por el degradado con el ícono de play como respaldo.
+        function manejarErrorMiniaturaIG(img) {
+            const div = document.createElement('div');
+            div.className = 'producto-img';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.justifyContent = 'center';
+            div.style.background = 'linear-gradient(135deg,#f58529,#dd2a7b,#8134af)';
+            div.style.color = '#fff';
+            div.style.fontSize = '42px';
+            div.textContent = '▶';
+            img.replaceWith(div);
+        }
+
         // Decide qué tipo de embed usar para la miniatura/título: YouTube > Facebook > Instagram
         function detectarMediaVideo(yt, fb, ig) {
             if (yt && yt.trim()) {
@@ -2610,7 +2635,8 @@
                 } else if (media.tipo === 'facebook') {
                     miniatura = `<div class="producto-img" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1877F2,#0d3f8f);color:#fff;font-size:42px;">▶</div>`;
                 } else {
-                    miniatura = `<div class="producto-img" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af);color:#fff;font-size:42px;">▶</div>`;
+                    const igThumb = construirMiniaturaInstagram(v.instagram);
+                    miniatura = `<img class="producto-img" src="${igThumb}" alt="${escaparHTMLVideo(v.titulo)}" referrerpolicy="no-referrer" onerror="manejarErrorMiniaturaIG(this)">`;
                 }
 
                 card.innerHTML = `
