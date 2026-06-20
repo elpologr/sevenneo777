@@ -66,6 +66,27 @@
             object-fit: cover;
         }
 
+        /* Foto de perfil circular, debajo de la barra de redes sociales */
+        .perfil-avatar-contenedor {
+            display: flex;
+            justify-content: center;
+            margin: -38px 0 14px 0;
+            position: relative;
+            z-index: 5;
+        }
+        .perfil-avatar-img {
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+            background: #ddd;
+        }
+        body.modo-oscuro .perfil-avatar-img {
+            border-color: #121212;
+        }
+
         .contenedor {
             max-width: 1200px;
             margin: 0 auto;
@@ -243,6 +264,37 @@
         /* ==========================================
            NUEVA SECCIÓN: VIDEOS DE YOUTUBE
            ========================================== */
+        .filtro-plataformas-video {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 0 0 28px 0;
+        }
+        .btn-filtro-plataforma {
+            padding: 12px 30px;
+            border-radius: 30px;
+            border: 2px solid #222;
+            background: #fff;
+            color: #222;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-filtro-plataforma.activo {
+            background: #222;
+            border-color: #222;
+            color: #fff;
+        }
+        .btn-filtro-plataforma.yt.activo { background:#FF0000; border-color:#FF0000; }
+        .btn-filtro-plataforma.fb.activo { background:#1877F2; border-color:#1877F2; }
+        .btn-filtro-plataforma.ig.activo { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af); border-color:#dd2a7b; }
+        body.modo-oscuro .btn-filtro-plataforma {
+            background: #1e1e1e;
+            border-color: #444;
+            color: #ddd;
+        }
         .grilla-videos {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -683,6 +735,52 @@
             display: flex; align-items: center; justify-content: center;
         }
         .mp-cerrar:hover { background: rgba(0,0,0,0.75); }
+
+        /* ── PLACEHOLDER DE VIDEO (antes de elegir plataforma) ── */
+        .mp-video-placeholder {
+            position: relative;
+            width: 100%;
+            min-height: 280px;
+            background: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .mp-video-placeholder img {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0.55;
+        }
+        .mp-video-play-icono {
+            position: relative;
+            z-index: 1;
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+        }
+
+        /* ── BOTONES DE PLATAFORMA (YouTube / Facebook / Instagram) ── */
+        .mp-plataformas-video {
+            display: none;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 14px 16px 0 16px;
+        }
+        .mp-video-boton {
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+        }
 
         /* ── GALERÍA ── */
         .mp-galeria {
@@ -1705,7 +1803,7 @@
     </div>
 
     <div class="banner">
-        <img src="imagenes/victor-banner.webp" alt="seven-neo-banner">
+        <img src="imagenes/banner.webp" alt="seven-neo-banner">
     </div>
 
     <!-- Banda de redes sociales -->
@@ -1734,6 +1832,11 @@
             <span>Compartir</span>
         </button>
 
+    </div>
+
+    <!-- Foto de perfil circular, justo debajo de la barra de redes sociales -->
+    <div class="perfil-avatar-contenedor">
+        <img src="imagenes/perfil.webp" alt="Foto de perfil de Seven Neo 777" class="perfil-avatar-img" onerror="this.parentElement.style.display='none'">
     </div>
 
     <div class="contenedor">
@@ -1780,6 +1883,11 @@
 
         </div>
         <div id="seccion-musica" style="display:none;">
+        <div class="filtro-plataformas-video" id="filtroPlataformasVideo">
+            <button type="button" class="btn-filtro-plataforma activo yt" id="btn-plat-youtube" onclick="filtrarPlataformaVideo('youtube')">YouTube</button>
+            <button type="button" class="btn-filtro-plataforma fb" id="btn-plat-facebook" onclick="filtrarPlataformaVideo('facebook')">Facebook</button>
+            <button type="button" class="btn-filtro-plataforma ig" id="btn-plat-instagram" onclick="filtrarPlataformaVideo('instagram')">Instagram</button>
+        </div>
         <div class="grilla-productos" id="grilla">
 
             <div class="sin-resultados" id="mensaje-vacio">Cargando videos…</div>
@@ -1811,6 +1919,9 @@
                 <button class="mp-flecha der oculto" id="mpFlechaDer" onclick="galeriaNavegar(1)">&#8250;</button>
                 <div class="mp-puntitos" id="mpPuntitos"></div>
             </div>
+
+            <!-- Botones de plataforma (solo aparecen cuando la ficha es un video) -->
+            <div class="mp-plataformas-video" id="mpPlataformasVideo"></div>
 
             <!-- Info -->
             <div class="mp-info">
@@ -2073,6 +2184,14 @@
         }
 
         function cerrarModal(modalId) {
+            // Si es el modal de producto/video, detener cualquier video que esté reproduciéndose
+            // (quitamos el iframe del DOM, que es la única forma real de detener YouTube/Facebook/Instagram embebidos)
+            if (modalId === 'modalProducto') {
+                const track = document.getElementById('mpTrack');
+                if (track) track.innerHTML = '';
+                const plataformasDiv = document.getElementById('mpPlataformasVideo');
+                if (plataformasDiv) { plataformasDiv.innerHTML = ''; plataformasDiv.style.display = 'none'; }
+            }
             document.getElementById(modalId).style.display = 'none';
             document.body.classList.remove('modal-abierto');
             document.body.style.top = '';
@@ -2171,23 +2290,48 @@
                 descEl.textContent = desc;
                 descEl.style.display = desc ? 'block' : 'none';
             }
-            // Si la tarjeta es un video de Sheets (YouTube, Facebook o Instagram), mostrarlo
+            // Si la tarjeta es un video de Sheets (YouTube, Facebook o Instagram), mostrar
+            // un placeholder con los botones de cada red social disponible. El video solo
+            // se reproduce cuando la persona presiona el botón de la red que quiere ver.
             if (card.dataset.mediaTipo === 'youtube' || card.dataset.mediaTipo === 'facebook' || card.dataset.mediaTipo === 'instagram') {
                 const track = document.getElementById('mpTrack');
                 const puntitos = document.getElementById('mpPuntitos');
-                const embed = card.dataset.mediaEmbed || '';
-                if (card.dataset.mediaTipo === 'youtube') {
-                    track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:280px;border:none;border-radius:12px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                } else if (card.dataset.mediaTipo === 'facebook') {
-                    track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:280px;border:none;border-radius:12px;overflow:hidden;" scrolling="no" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
-                } else {
-                    track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:480px;border:none;border-radius:12px;" allowtransparency="true" allowfullscreen="true"></iframe>`;
-                }
+
+                track.innerHTML = `
+                    <div class="mp-video-placeholder">
+                        ${card.dataset.ytId ? `<img src="https://img.youtube.com/vi/${card.dataset.ytId}/hqdefault.jpg" alt="">` : ''}
+                        <div class="mp-video-play-icono">▶</div>
+                    </div>`;
                 puntitos.innerHTML = '';
                 puntitos.style.display = 'none';
                 document.getElementById('mpFlechaIzq').classList.add('oculto');
                 document.getElementById('mpFlechaDer').classList.add('oculto');
                 galeriaImagenes = [];
+
+                // Construir los botones de plataforma según qué columnas vinieron llenas
+                const plataformasDiv = document.getElementById('mpPlataformasVideo');
+                if (plataformasDiv) {
+                    plataformasDiv.innerHTML = '';
+                    const plataformas = [];
+                    if (card.dataset.ytEmbed) plataformas.push({ tipo: 'youtube', clase: 'yt', etiqueta: 'YouTube', embed: card.dataset.ytEmbed });
+                    if (card.dataset.fbEmbed) plataformas.push({ tipo: 'facebook', clase: 'fb', etiqueta: 'Facebook', embed: card.dataset.fbEmbed });
+                    if (card.dataset.igEmbed) plataformas.push({ tipo: 'instagram', clase: 'ig', etiqueta: 'Instagram', embed: card.dataset.igEmbed });
+
+                    plataformas.forEach(p => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'red-social ' + p.clase + ' mp-video-boton';
+                        btn.innerHTML = `<span>▶ ${p.etiqueta}</span>`;
+                        btn.onclick = () => reproducirVideoModal(p.tipo, p.embed);
+                        plataformasDiv.appendChild(btn);
+                    });
+                    plataformasDiv.style.display = plataformas.length ? 'flex' : 'none';
+
+                    // Si solo hay una plataforma disponible, reproducir directo al presionar el placeholder
+                    if (plataformas.length === 1) {
+                        track.querySelector('.mp-video-placeholder').onclick = () => reproducirVideoModal(plataformas[0].tipo, plataformas[0].embed);
+                    }
+                }
 
                 document.getElementById('btnMpCompartir').onclick = () => abrirCompartir(card.id, card.dataset.nombre);
                 abrirModal('modalProducto');
@@ -2219,6 +2363,20 @@
             document.getElementById('btnMpCompartir').onclick = () => abrirCompartir(card.id, card.dataset.nombre);
 
             abrirModal('modalProducto');
+        }
+
+        // Inserta el iframe de la plataforma elegida (solo se llama cuando la persona
+        // presiona un botón de YouTube / Facebook / Instagram, nunca automáticamente).
+        function reproducirVideoModal(tipo, embed) {
+            const track = document.getElementById('mpTrack');
+            if (!track || !embed) return;
+            if (tipo === 'youtube') {
+                track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:280px;border:none;border-radius:12px;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            } else if (tipo === 'facebook') {
+                track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:280px;border:none;border-radius:12px;overflow:hidden;" scrolling="no" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+            } else if (tipo === 'instagram') {
+                track.innerHTML = `<iframe src="${embed}" style="width:100%;height:100%;min-height:480px;border:none;border-radius:12px;" allowtransparency="true" allowfullscreen="true"></iframe>`;
+            }
         }
 
         // ═══════════════════════════════════════════════
@@ -2285,7 +2443,28 @@
             return m ? m[1] : null;
         }
 
-        // Decide qué tipo de embed usar según qué columna venga llena: YouTube > Facebook > Instagram
+        // Construyen el embed de cada red social de forma independiente, para que
+        // un mismo video pueda tener YouTube, Facebook e Instagram disponibles a la vez.
+        function construirEmbedYoutube(url) {
+            const id = extraerYoutubeId(url.trim());
+            return id ? { embed: `https://www.youtube.com/embed/${id}?autoplay=1`, id } : null;
+        }
+        function construirEmbedFacebook(url) {
+            const u = url.trim();
+            if (!u) return null;
+            return u.includes('plugins/video.php')
+                ? u
+                : `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(u)}&show_text=0&autoplay=1`;
+        }
+        function construirEmbedInstagram(url) {
+            let u = url.trim();
+            if (!u) return null;
+            u = u.split('?')[0];
+            if (!u.endsWith('/')) u += '/';
+            return u.endsWith('/embed/') ? u : u + 'embed';
+        }
+
+        // Decide qué tipo de embed usar para la miniatura/título: YouTube > Facebook > Instagram
         function detectarMediaVideo(yt, fb, ig) {
             if (yt && yt.trim()) {
                 const id = extraerYoutubeId(yt.trim());
@@ -2395,6 +2574,9 @@
 
             validos.forEach((v, i) => {
                 const media = detectarMediaVideo(v.youtube, v.facebook, v.instagram);
+                const ytData  = v.youtube   ? construirEmbedYoutube(v.youtube)     : null;
+                const fbEmbed = v.facebook  ? construirEmbedFacebook(v.facebook)   : null;
+                const igEmbed = v.instagram ? construirEmbedInstagram(v.instagram) : null;
 
                 const card = document.createElement('div');
                 card.className = 'producto-card';
@@ -2402,7 +2584,9 @@
                 card.dataset.nombre      = v.titulo;
                 card.dataset.descripcion = v.descripcion;
                 card.dataset.mediaTipo   = media.tipo;
-                card.dataset.mediaEmbed  = media.embed;
+                if (ytData)  { card.dataset.ytEmbed = ytData.embed; card.dataset.ytId = ytData.id; }
+                if (fbEmbed) { card.dataset.fbEmbed = fbEmbed; }
+                if (igEmbed) { card.dataset.igEmbed = igEmbed; }
                 card.onclick = function () { abrirFichaProducto(card); };
 
                 let miniatura;
@@ -2685,16 +2869,40 @@
         let paginaActual = 1;
         let tarjetasFiltradas = [];
         let textoBusqueda = '';
+        let filtroPlataformaVideo = 'youtube'; // 'youtube' | 'facebook' | 'instagram'
+
+        function filtrarPlataformaVideo(plataforma) {
+            filtroPlataformaVideo = plataforma;
+            document.querySelectorAll('.btn-filtro-plataforma').forEach(b => b.classList.remove('activo'));
+            const btn = document.getElementById('btn-plat-' + plataforma);
+            if (btn) btn.classList.add('activo');
+            aplicarFiltros();
+        }
 
         function aplicarFiltros() {
             paginaActual = 1;
             // Solo operar sobre cards dentro de seccion-musica (no las de proyectos ni las ocultas)
             const secMusica = document.getElementById('seccion-musica');
             const todas = Array.from(secMusica ? secMusica.querySelectorAll('.producto-card') : document.querySelectorAll('.producto-card'));
-            tarjetasFiltradas = todas;
-            todas.forEach(p => p.style.display = 'flex');
+
+            const claveDataset = filtroPlataformaVideo === 'youtube' ? 'ytEmbed'
+                                : filtroPlataformaVideo === 'facebook' ? 'fbEmbed'
+                                : 'igEmbed';
+
+            tarjetasFiltradas = todas.filter(p => !!p.dataset[claveDataset]);
+
+            todas.forEach(p => p.style.display = 'none');
+            tarjetasFiltradas.forEach(p => p.style.display = 'flex');
+
             const msgVacio = document.getElementById('mensaje-vacio');
-            if (msgVacio) msgVacio.style.display = 'none';
+            if (msgVacio) {
+                if (todas.length && !tarjetasFiltradas.length) {
+                    msgVacio.textContent = 'No hay videos disponibles en esta plataforma.';
+                    msgVacio.style.display = 'block';
+                } else {
+                    msgVacio.style.display = 'none';
+                }
+            }
         }
 
         function filtrarPorNombre(valor) {
